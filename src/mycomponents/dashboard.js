@@ -656,7 +656,7 @@ setUserTasks(taskData.tasks || []);
               ![
                 'submitted and waiting for review',
                 'review',
-                'in progress',
+                
                 'done',
                 'completed'
               ].includes(status)
@@ -670,7 +670,7 @@ setUserTasks(taskData.tasks || []);
             >
               <div style={styles.taskTitle}>{task.title}</div>
               <div style={styles.taskDescription}>{task.description}</div>
-              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy}</div>
+              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy?.username}</div>
               {task.deadline && (
                 <div style={styles.taskDeadline}>Deadline: {formatDate(task.deadline)}</div>
               )}
@@ -707,7 +707,7 @@ setUserTasks(taskData.tasks || []);
             >
               <div style={styles.taskTitle}>{task.title}</div>
               <div style={styles.taskDescription}>{task.description}</div>
-              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy}</div>
+              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy?.username}</div>
               {task.deadline && (
                 <div style={styles.taskDeadline}>Deadline: {formatDate(task.deadline)}</div>
               )}
@@ -744,7 +744,7 @@ setUserTasks(taskData.tasks || []);
             >
               <div style={styles.taskTitle}>{task.title}</div>
               <div style={styles.taskDescription}>{task.description}</div>
-              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy}</div>
+              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy?.username}</div>
               {task.deadline && (
                 <div style={styles.taskDeadline}>Deadline: {formatDate(task.deadline)}</div>
               )}
@@ -793,7 +793,7 @@ const renderEmployeeDashboard = () => (
             >
               <div style={styles.taskTitle}>{task.title}</div>
               <div style={styles.taskDescription}>{task.description}</div>
-              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy}</div>
+              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy?.username}</div>
               {task.deadline && (
                 <div style={styles.taskDeadline}>Deadline: {formatDate(task.deadline)}</div>
               )}
@@ -830,7 +830,7 @@ const renderEmployeeDashboard = () => (
             >
               <div style={styles.taskTitle}>{task.title}</div>
               <div style={styles.taskDescription}>{task.description}</div>
-              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy}</div>
+              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy?.username}</div>
               {task.deadline && (
                 <div style={styles.taskDeadline}>Deadline: {formatDate(task.deadline)}</div>
               )}
@@ -867,7 +867,7 @@ const renderEmployeeDashboard = () => (
             >
               <div style={styles.taskTitle}>{task.title}</div>
               <div style={styles.taskDescription}>{task.description}</div>
-              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy}</div>
+              <div style={styles.taskAssignedBy}>Assigned by: {task.assignedBy?.username}</div>
               {task.deadline && (
                 <div style={styles.taskDeadline}>Deadline: {formatDate(task.deadline)}</div>
               )}

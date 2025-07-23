@@ -211,7 +211,8 @@ formData.append('email',localStorage.getItem('email'));
                     </span>
                   </div>
                   <span style={{ color: '#1f2937', fontSize: '14px', fontWeight: '500' }}>
-                    {assignee || "Unknown"}
+                    {typeof assignee === 'object' ? assignee.username : assignee || "Unknown"}
+
                   </span>
                   
                 </div>
@@ -250,7 +251,8 @@ formData.append('email',localStorage.getItem('email'));
                     </span>
                   </div>
                   <span style={{ color: '#1f2937', fontSize: '14px', fontWeight: '500' }}>
-                    {assignedBy || "Unknown"}
+                    {typeof assignedBy === 'object' ? assignedBy.username : assignedBy || "Unknown"}
+
                   </span>
                   
                 </div>
@@ -291,7 +293,8 @@ formData.append('email',localStorage.getItem('email'));
                   </span>
                 </div>
                 <span style={{ color: '#1f2937', fontSize: '14px', fontWeight: '500' }}>
-                  {deadline || "No deadline"}
+                  {deadline ? new Date(deadline).toLocaleDateString() : "No deadline"}
+
                 </span>
               </div>
             </div>

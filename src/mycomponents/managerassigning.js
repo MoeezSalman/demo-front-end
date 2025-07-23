@@ -18,7 +18,8 @@ const [showSearch,      setShowSearch]      = useState(false);
 const [searchTerm,      setSearchTerm]      = useState('');
 const [suggestions,     setSuggestions]     = useState([]);
 const [selectedUser,    setSelectedUser]    = useState(null);
-const currentUsername = assignee; // ✅ fallback if not provided
+const currentUsername = assignee?.username || assignee;
+
 const fetchHistory = async () => {
   try {
     const res = await fetch(`http://localhost:5000/api/team/history/${currentUsername}?title=${encodeURIComponent(title)}`);
@@ -113,10 +114,12 @@ const handleConfirm = async () => {
     title: "Q1 Budget Review",
     description: "The Q1 budget review evaluates allocations and identifies fund usage. Stakeholders analyze spending patterns to ensure resources align with goals, aiding informed decisions for future allocations.",
     status: "In-Progress",
-    priority: "High Priority",
-    assignedTo: selectedUser?.username || assignee || "Not Assigned",
-    department: "IT",
-    deadline: "15-Feb-2024"
+    priority: location.state?.priority || 'Medium',
+  assignedBy: assignedBy?.username || 'Unknown',
+assignedTo: selectedUser?.username || assignee?.username || assignee || 'Not Assigned',
+
+  department: location.state?.department || 'N/A',
+  deadline: deadline || 'Not set'
   };
 
 const [historyItems, setHistoryItems] = useState([]);
@@ -150,10 +153,12 @@ const handleMarkAsClosed = async () => {
 
 
   const getUserAvatar = (username) => {
-    const colors = ['#007aff', '#ff9500', '#34c759', '#ff3b30', '#5856d6'];
-    const colorIndex = username.charCodeAt(0) % colors.length;
-    return colors[colorIndex];
-  };
+  if (!username || typeof username !== 'string') return '#9ca3af'; // default gray
+  const hash = username.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  const colors = ['#f87171', '#60a5fa', '#34d399', '#fbbf24', '#c084fc'];
+  return colors[hash % colors.length];
+};
+
 
   const styles = {
     container: {
@@ -362,7 +367,8 @@ const handleMarkAsClosed = async () => {
       {/* Header */}
       <div style={styles.header}>
         <div style={styles.headerLeft}>
-          <button style={styles.backButton}>←</button>
+          <button style={styles.backButton} onClick={() => navigate(-1)}>←</button>
+
          <h1 style={styles.title}>{title}</h1>
 
         </div>
@@ -497,40 +503,44 @@ const handleMarkAsClosed = async () => {
         {/* Right Column - History */}
         <div style={styles.rightColumn}>
           <h2 style={styles.sectionTitle}>History:</h2>
-          
-          {historyItems.map((item, index) => (
-            <div key={item.id} style={styles.historyItem}>
-              <div style={styles.historyDot}></div>
-              
-              <div style={styles.historyContent}>
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-                  <div>
-                    <p style={styles.historyAction}>{item.action}</p>
-                    <p style={styles.historyDate}>{item.date}</p>
-                    <div style={styles.historyUser}>
-                      <span style={styles.historyUserText}>by</span>
-                      <div 
-                        style={{...styles.smallAvatar, backgroundColor: getUserAvatar(item.user)}}
-                      >
-                        {item.user.charAt(0)}
-                      </div>
-                      <span style={styles.historyUserName}>{item.user}</span>
-                    </div>
-                    {item.status && (
-                      <div style={styles.historyStatus}>
-                        Status: {item.status}
-                      </div>
-                    )}
-                  </div>
-                  {item.hasFile && (
-                    <a href="#" style={styles.viewFileButton}>
-                      👁️ View File
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+{historyItems.map((item, index) => (
+  <div key={item.id || index} style={styles.historyItem}>
+    <div style={styles.historyDot}></div>
+    <div style={styles.historyContent}>
+      <div style={styles.historyAction}>{item.action}</div>
+
+      <div style={styles.historyDate}>
+        {item.date ? new Date(item.date).toLocaleString() : 'Unknown Date'}
+      </div>
+
+      <div style={styles.historyUser}>
+        <div
+          style={{
+            ...styles.smallAvatar,
+            backgroundColor: getUserAvatar(item.user)
+          }}
+        >
+          {item.user?.charAt(0) || '?'}
+        </div>
+        <span style={styles.historyUserText}>Assigned by</span>
+        <span style={styles.historyUserName}>{item.user || 'Unknown User'}</span>
+      </div>
+
+      {item.status && (
+        <div style={styles.historyStatus}>Status: {item.status}</div>
+      )}
+
+      {item.hasFile && (
+        <a href={`http://localhost:5000/api/task/${item.id}/file`} target="_blank" rel="noreferrer" style={styles.viewFileButton}>
+          📎 View File
+        </a>
+      )}
+    </div>
+  </div>
+))}
+
+
+
         </div>
       </div>
     </div>
