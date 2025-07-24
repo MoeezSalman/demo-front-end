@@ -27,8 +27,8 @@ const teamName = location.state?.teamName || 'Team';
   // Mock team data - in real app this would come from props or params
   
 
-  const departments = ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance'];
-  const roles = ['Admin', 'Member', 'Viewer', 'Editor'];
+  const departments = ['Engineering', 'Marketing', 'Sales', 'Finance'];
+  const roles = ['HR', 'Employee', 'Auditor', 'Manager'];
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({

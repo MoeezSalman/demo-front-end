@@ -30,6 +30,7 @@ const handleSubmit = async () => {
   if (pasteLink) formData.append("link", pasteLink);
   formData.append("title", title); // title comes from router state
 formData.append('email',localStorage.getItem('email'));
+formData.append("userId", localStorage.getItem("userId"));
   try {
     const res = await fetch("http://localhost:5000/api/auth/upload-work", {
       method: "POST",

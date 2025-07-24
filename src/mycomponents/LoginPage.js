@@ -20,10 +20,12 @@ const navigate = useNavigate();
     const data = await response.json();
     if (response.ok) {
       console.log('Login success:', data);
+      console.log(data.userId); 
       alert("Login success");
       localStorage.setItem('token', data.token);
         localStorage.setItem('email', email);
         localStorage.setItem('name',data.username);
+        localStorage.setItem('userId', data.userId);
       navigate('/dashboard');
     } else {
       alert(data.message || 'Login failed');
@@ -57,6 +59,8 @@ const handleMicrosoftLogin = async () => {
       alert('Microsoft login successful');
       localStorage.setItem('email', account.username);
       localStorage.setItem('name', data.username);
+      localStorage.setItem('userId', data.userId);
+      console.log(data.userId); 
       console.log(account.username);
       console.log(data.username);
       navigate('/dashboard');
