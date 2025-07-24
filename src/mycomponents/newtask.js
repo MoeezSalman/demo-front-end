@@ -322,15 +322,18 @@ const handleSubmit = async (e) => {
     style={styles.select}
   >
     <option value="">Select user</option>
-    {assignableUsers.length > 0 ? (
-      assignableUsers.map((user) => (
-        <option key={user._id} value={user.username}>
-          {user.username}
-        </option>
-      ))
-    ) : (
-      <option disabled>No users found</option>
-    )}
+    {assignableUsers.filter(user => user.role === 'manager').length > 0 ? (
+  assignableUsers
+    .filter(user => user.role === 'manager')
+    .map((user) => (
+      <option key={user._id} value={user.username}>
+        {user.username}
+      </option>
+    ))
+) : (
+  <option disabled>No managers found</option>
+)}
+
   </select>
   <span style={styles.selectIcon}>▼</span>
 </div>
