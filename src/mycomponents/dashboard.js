@@ -48,26 +48,38 @@ const handleTaskClick = (task, userName) => {
     });
   }
 };
-
-
 const userId = localStorage.getItem('userId');
 const fetchAuditorFiles = async () => {
   try {
-    const res = await fetch(`http://localhost:5000/api/team/auditor-files/${userId}`);
+    // Add query parameter to exclude closed tasks
+    const res = await fetch(`http://localhost:5000/api/team/auditor-files/${userId}?excludeClosed=true`);
     if (!res.ok) throw new Error('Failed to fetch files');
     
     const data = await res.json();
     
     if (data.success && data.files) {
-      const processedFiles = data.files.map(file => ({
-        ...file,
-        id: file._id,
-        fileData: file.fileData?.toString('base64'),
-        // Task information is now included in the response
-        taskTitle: file.taskTitle,
-        taskDescription: file.taskDescription,
-        assignedByName: file.assignedByName || file.uploadedByName || 'Unknown'
-      }));
+      const processedFiles = data.files
+        .filter(file => {
+          // Double-check filtering on frontend as well
+          const taskStatus = file.status || file.taskStatus || '';
+          const normalizedStatus = taskStatus.toLowerCase().trim();
+          
+          console.log('File status check:', file.taskTitle, 'Status:', normalizedStatus);
+          
+          return normalizedStatus !== 'closed' && 
+                 normalizedStatus !== 'completed' && 
+                 normalizedStatus !== 'done';
+        })
+        .map(file => ({
+          ...file,
+          id: file._id,
+          fileData: file.fileData?.toString('base64'),
+          taskTitle: file.taskTitle,
+          taskDescription: file.taskDescription,
+          assignedByName: file.assignedByName || file.uploadedByName || 'Unknown'
+        }));
+      
+      console.log('Processed files after filtering:', processedFiles.length);
       setAuditorFiles(processedFiles);
     }
   } catch (err) {
@@ -712,7 +724,7 @@ setUserTasks(taskData.tasks || []);
               ![
                 'submitted and waiting for review',
                 'review',
-                
+                'closed',
                 'done',
                 'completed'
               ].includes(status)
@@ -785,12 +797,12 @@ setUserTasks(taskData.tasks || []);
 
       {userTasks.some(task => {
         const status = task.status?.trim().toLowerCase();
-        return status === 'done' || status === 'completed';
+        return status === 'closed';
       }) ? (
         userTasks
           .filter(task => {
             const status = task.status?.trim().toLowerCase();
-            return status === 'done' || status === 'completed';
+            return status === 'closed';
           })
           .map((task, idx) => (
             <div
@@ -811,7 +823,7 @@ setUserTasks(taskData.tasks || []);
           ))
       ) : (
         <div style={styles.taskItem}>
-          <div style={styles.taskDescription}>No completed tasks</div>
+          <div style={styles.taskDescription}>No tasks in progress</div>
         </div>
       )}
     </div>
@@ -1112,6 +1124,61 @@ const renderEmployeeDashboard = () => (
   </div>
 );
 
+const handleCloseTask = async (taskTitle, taskId) => {
+  try {
+    const username = localStorage.getItem('name');
+    const userId = localStorage.getItem('userId'); // Get userId from localStorage
+    if (!username || !userId) throw new Error('User not authenticated');
+
+    const confirmed = window.confirm(
+      `Close task "${taskTitle}"? This will delete all associated files.`
+    );
+    if (!confirmed) return;
+
+    const response = await fetch(
+      `http://localhost:5000/api/team/task/close/title/${encodeURIComponent(taskTitle)}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          name: username,
+          userId: userId  // Add userId to match backend expectation
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to close task');
+    }
+
+    console.log('Server response:', data);
+
+    // Optimistic UI update
+    setAuditorFiles(prev => prev.filter(file => 
+      file.id !== taskId && file.taskTitle !== taskTitle
+    ));
+
+    alert(`Task "${taskTitle}" closed successfully. ${data.message}`);
+
+  } catch (err) {
+    console.error('Close task error:', err);
+    alert(`Error: ${err.message}`);
+  } finally {
+    fetchAuditorFiles();
+  }
+};
+
+// Add this function to handle file download
+const handleDownloadFile = (file) => {
+  const link = document.createElement('a');
+  link.href = `data:${file.fileType};base64,${file.fileData}`;
+  link.download = file.fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
  useEffect(() => {
     if (userRole === 'Auditor') {
       fetchAuditorFiles();
@@ -1137,30 +1204,78 @@ const renderAuditorView = () => {
       alignItems: 'center',
     },
     taskItem: {
-      backgroundColor: 'white',
-      padding: '15px',
+      backgroundColor: '#f8f9fa',
+      padding: '20px',
       borderRadius: '8px',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
       marginBottom: '15px',
-      cursor: 'pointer',
       borderLeft: '4px solid #4285f4',
+      border: '1px solid #e0e0e0',
     },
     taskTitle: {
-      fontSize: '16px',
+      fontSize: '18px',
       fontWeight: '600',
       color: '#333',
-      marginBottom: '8px',
+      marginBottom: '10px',
     },
     taskDescription: {
       fontSize: '14px',
       color: '#666',
-      marginBottom: '8px',
+      marginBottom: '12px',
+      lineHeight: '1.4',
     },
     taskMeta: {
       display: 'flex',
       justifyContent: 'space-between',
+      alignItems: 'center',
       fontSize: '12px',
       color: '#888',
+      marginBottom: '15px',
+      padding: '8px 0',
+      borderTop: '1px solid #e0e0e0',
+      borderBottom: '1px solid #e0e0e0',
+    },
+    fileInfo: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      fontSize: '13px',
+      color: '#555',
+      marginBottom: '15px',
+    },
+    actionButtons: {
+      display: 'flex',
+      gap: '10px',
+      justifyContent: 'flex-end',
+    },
+    viewButton: {
+      backgroundColor: '#4285f4',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      padding: '8px 16px',
+      cursor: 'pointer',
+      fontSize: '14px',
+      fontWeight: '500',
+    },
+    downloadButton: {
+      backgroundColor: '#34a853',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      padding: '8px 16px',
+      cursor: 'pointer',
+      fontSize: '14px',
+      fontWeight: '500',
+    },
+    closeButton: {
+      backgroundColor: '#ea4335',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      padding: '8px 16px',
+      cursor: 'pointer',
+      fontSize: '14px',
+      fontWeight: '500',
     },
     fileModal: {
       position: 'fixed',
@@ -1193,7 +1308,7 @@ const renderAuditorView = () => {
       borderBottom: '1px solid #eee',
       paddingBottom: '15px',
     },
-    closeButton: {
+    modalCloseButton: {
       backgroundColor: '#ff6b6b',
       color: 'white',
       border: 'none',
@@ -1201,66 +1316,136 @@ const renderAuditorView = () => {
       padding: '5px 10px',
       cursor: 'pointer',
     },
-    markClosedButton: {
-      backgroundColor: '#34a853',
-      color: 'white',
-      border: 'none',
-      borderRadius: '4px',
-      padding: '8px 16px',
-      cursor: 'pointer',
-      marginTop: '15px',
-      alignSelf: 'flex-end',
-    },
   };
 
- return (
+  return (
     <div style={auditorStyles.auditorContainer}>
-      {/* ... (keep header code) */}
+      <div style={auditorStyles.auditorHeader}>
+        <span>📋 Assigned Tasks</span>
+        <span style={{ fontSize: '14px', color: '#666' }}>
+          {auditorFiles.length} task{auditorFiles.length !== 1 ? 's' : ''} assigned
+        </span>
+      </div>
 
       {auditorFiles.length === 0 ? (
-        <p style={{ color: '#666', textAlign: 'center', padding: '20px' }}>
-          No tasks have been allocated to you yet.
-        </p>
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '40px 20px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+          border: '2px dashed #ddd'
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📭</div>
+          <p style={{ color: '#666', fontSize: '16px', margin: '0' }}>
+            No tasks have been allocated to you yet.
+          </p>
+        </div>
       ) : (
         <div>
           {auditorFiles.map((file) => (
             <div key={file.id} style={auditorStyles.taskItem}>
-              {/* Make the title clickable for task details */}
-              <div 
-                style={{...auditorStyles.taskTitle, cursor: 'pointer'}}
-                onClick={() => handleTaskClick(file, usernamevalue)}
-              >
+              <div style={auditorStyles.taskTitle}>
                 {file.taskTitle || 'Untitled Task'}
               </div>
               
               <div style={auditorStyles.taskDescription}>
                 {file.taskDescription || 'No description available'}
               </div>
+
+              <div style={auditorStyles.fileInfo}>
+                <span>{getFileIcon(file.fileType)}</span>
+                <span><strong>File:</strong> {file.fileName}</span>
+                <span style={{ marginLeft: '10px' }}>
+                  ({formatFileSize(file.fileData)})
+                </span>
+              </div>
               
               <div style={auditorStyles.taskMeta}>
-                <span>Assigned by: {file.assignedByName || 'Unknown'}</span>
-                
-                {/* Make the file info clickable for file viewing */}
-                <span 
-                  style={{cursor: 'pointer', textDecoration: 'underline'}}
+                <span><strong>Assigned by:</strong> {file.assignedByName || 'Unknown'}</span>
+                <span><strong>Date:</strong> {
+                  file.uploadedAt 
+                    ? new Date(file.uploadedAt).toLocaleDateString() 
+                    : 'Unknown date'
+                }</span>
+              </div>
+
+              <div style={auditorStyles.actionButtons}>
+                <button 
+                  style={auditorStyles.viewButton}
                   onClick={() => handleViewFile(file)}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#3367d6'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#4285f4'}
                 >
-                  File: {file.fileName}
-                </span>
+                  👁️ View File
+                </button>
                 
-                <span>
-                  {file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : 'Unknown date'}
-                </span>
+                <button 
+                  style={auditorStyles.downloadButton}
+                  onClick={() => handleDownloadFile(file)}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#2d8f3f'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#34a853'}
+                >
+                  ⬇️ Download
+                </button>
+                
+<button 
+  style={auditorStyles.closeButton}
+  onClick={() => {
+    if (window.confirm('Are you sure you want to close this task? This action cannot be undone.')) {
+      handleCloseTask(file.taskTitle || 'Untitled Task', file.id);
+    }
+  }}
+>
+  ✕ Close Task
+</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Keep the existing file modal code */}
+      {/* File Viewer Modal */}
       {selectedFile && (
         <div style={auditorStyles.fileModal}>
-          {/* ... (existing modal content) */}
+          <div style={auditorStyles.fileModalContent}>
+            <div style={auditorStyles.fileModalHeader}>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', margin: '0' }}>
+                {selectedFile.fileName}
+                <span style={{ fontSize: '14px', color: '#666', marginLeft: '10px' }}>
+                  ({formatFileSize(selectedFile.fileData)})
+                </span>
+              </h3>
+              <button 
+                onClick={handleCloseFile}
+                style={auditorStyles.modalCloseButton}
+              >
+                ✕ Close
+              </button>
+            </div>
+            
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              {renderFileContent(selectedFile, selectedFile.fileName.split('.').pop().toLowerCase())}
+            </div>
+            
+            <div style={{ marginTop: '15px', textAlign: 'center' }}>
+              <button
+                onClick={() => handleDownloadFile(selectedFile)}
+                style={{
+                  display: 'inline-block',
+                  padding: '10px 20px',
+                  backgroundColor: '#4285f4',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+              >
+                ⬇️ Download File
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

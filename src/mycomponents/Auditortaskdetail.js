@@ -21,6 +21,34 @@ const AuditorTaskDetail = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const handleCloseTask = async () => {
+    if (!title) {
+      alert('Task title is missing.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/team/task/close/title/${encodeURIComponent(title)}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Task closed successfully.');
+        navigate(-1); // Go back to previous page
+      } else {
+        alert(`Failed to close task: ${result.message}`);
+      }
+    } catch (err) {
+      console.error('Error closing task:', err);
+      alert('Something went wrong.');
+    }
+  };
+
   // Define styles object
   const styles = {
     container: {
@@ -175,16 +203,31 @@ const AuditorTaskDetail = () => {
   // Fetch complete assignment history using the /history/:username endpoint
   const fetchAssignmentHistory = async () => {
     try {
+      // Check if we have a valid username to start with
+      const initialUsername = assignedBy?.username || assignee;
+      
+      if (!initialUsername || initialUsername === 'undefined') {
+        console.warn('No valid username found for fetching history');
+        setLoading(false);
+        return;
+      }
+
       // First get the full chain of users involved in this task's assignment
-      const assignmentChain = await getAssignmentChain(assignedBy?.username || assignee);
+      const assignmentChain = await getAssignmentChain(initialUsername);
       
       // Then fetch history for each user in the chain
       const allHistory = [];
       for (const username of assignmentChain) {
-        const res = await fetch(`http://localhost:5000/api/team/history/${username}?title=${encodeURIComponent(title)}`);
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          allHistory.push(...data);
+        if (username && username !== 'undefined') {
+          const res = await fetch(`http://localhost:5000/api/team/history/${username}?title=${encodeURIComponent(title)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              allHistory.push(...data);
+            }
+          } else {
+            console.warn(`Failed to fetch history for user: ${username}`);
+          }
         }
       }
       
@@ -212,28 +255,42 @@ const AuditorTaskDetail = () => {
 
   // Helper function to get the chain of users involved in assignments
   const getAssignmentChain = async (initialUsername) => {
+    if (!initialUsername || initialUsername === 'undefined') {
+      return [];
+    }
+
     const chain = [initialUsername];
     try {
       let currentUsername = initialUsername;
       let keepLooking = true;
       
       while (keepLooking) {
+        if (!currentUsername || currentUsername === 'undefined') {
+          break;
+        }
+
         const res = await fetch(`http://localhost:5000/api/team/history/${currentUsername}?title=${encodeURIComponent(title)}`);
-        const data = await res.json();
         
-        if (Array.isArray(data) && data.length > 0) {
-          // Find who assigned the task to the current user
-          const assignment = data.find(item => 
-            item.action.includes(`Assigned to ${currentUsername}`)
-          );
+        if (res.ok) {
+          const data = await res.json();
           
-          if (assignment && assignment.user && !chain.includes(assignment.user)) {
-            chain.push(assignment.user);
-            currentUsername = assignment.user;
+          if (Array.isArray(data) && data.length > 0) {
+            // Find who assigned the task to the current user
+            const assignment = data.find(item => 
+              item.action.includes(`Assigned to ${currentUsername}`)
+            );
+            
+            if (assignment && assignment.user && assignment.user !== 'undefined' && !chain.includes(assignment.user)) {
+              chain.push(assignment.user);
+              currentUsername = assignment.user;
+            } else {
+              keepLooking = false;
+            }
           } else {
             keepLooking = false;
           }
         } else {
+          console.warn(`Failed to fetch history for user: ${currentUsername}`);
           keepLooking = false;
         }
       }
@@ -245,8 +302,12 @@ const AuditorTaskDetail = () => {
   };
 
   useEffect(() => {
-    fetchAssignmentHistory();
-  }, []);
+    if (title) {
+      fetchAssignmentHistory();
+    } else {
+      setLoading(false);
+    }
+  }, [title, assignedBy, assignee]);
 
   const getUserAvatar = (username) => {
     if (!username || typeof username !== 'string') return '#9ca3af';
@@ -261,13 +322,13 @@ const AuditorTaskDetail = () => {
         {/* Header */}
         <div style={styles.header}>
           <button style={styles.backButton} onClick={() => navigate(-1)}>← Back</button>
-          <h1 style={styles.title}>{title}</h1>
+          <h1 style={styles.title}>{title || 'Task Details'}</h1>
         </div>
 
         {/* Task Details */}
         <div style={styles.card}>
           <h2 style={styles.sectionTitle}>Task Details</h2>
-          <p style={styles.description}>{description}</p>
+          <p style={styles.description}>{description || 'No description available'}</p>
 
           <div style={styles.metadataRow}>
             <span style={styles.metadataLabel}>Status:</span>
@@ -296,6 +357,17 @@ const AuditorTaskDetail = () => {
                 <span style={{ fontSize: '16px' }}>📄 {fileName}</span>
               </div>
               <div style={styles.fileActions}>
+                <button
+                  style={{
+                    ...styles.fileButton,
+                    backgroundColor: '#10b981',
+                    marginTop: '16px'
+                  }}
+                  onClick={handleCloseTask}
+                >
+                  ✅ Close Task
+                </button>
+
                 <button 
                   style={styles.fileButton}
                   onClick={() => window.open(`data:${fileType};base64,${fileData}`, '_blank')}
