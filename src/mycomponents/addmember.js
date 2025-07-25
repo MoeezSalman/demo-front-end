@@ -1,85 +1,85 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 
 
 const FinanceDashboard = () => {
-const [teams, setTeams] = useState([]);
-const [loadingTeams, setLoadingTeams] = useState(true);
-const [completedStats, setCompletedStats] = useState({ completed: 0, remaining: 0 });
-const { id: teamId } = useParams();
-const navigate = useNavigate();
+  const [teams, setTeams] = useState([]);
+  const [loadingTeams, setLoadingTeams] = useState(true);
+  const [completedStats, setCompletedStats] = useState({ completed: 0, remaining: 0 });
+  const { id: teamId } = useParams();
+  const navigate = useNavigate();
 
-useEffect(() => {
-  const fetchTeams = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/team/all-teams');
-      const data = await response.json();
-      const allTeams = data.teams || [];
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/team/all-teams');
+        const data = await response.json();
+        const allTeams = data.teams || [];
 
-      // ✅ Filter to the one team based on ID
-      const selectedTeam = allTeams.find(team => team._id === teamId);
+        // ✅ Filter to the one team based on ID
+        const selectedTeam = allTeams.find(team => team._id === teamId);
 
-      if (selectedTeam) {
-        setTeams([selectedTeam]); // Only set the matched team
-        const totalCompleted = selectedTeam.completedTasks || 0;
-        const totalTasks = 100; // Adjust if needed
-        const remaining = totalTasks - totalCompleted;
+        if (selectedTeam) {
+          setTeams([selectedTeam]); // Only set the matched team
+          const totalCompleted = selectedTeam.completedTasks || 0;
+          const totalTasks = 100; // Adjust if needed
+          const remaining = totalTasks - totalCompleted;
 
-        setCompletedStats({
-          completed: totalCompleted,
-          remaining: remaining > 0 ? remaining : 0,
-        });
+          setCompletedStats({
+            completed: totalCompleted,
+            remaining: remaining > 0 ? remaining : 0,
+          });
 
-        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        const totals = months.map((month) => ({
-          month,
-          value: selectedTeam.monthlyStats?.[month] || 0
-        }));
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const totals = months.map((month) => ({
+            month,
+            value: selectedTeam.monthlyStats?.[month] || 0
+          }));
 
-        setMonthlyData(totals);
-      } else {
-        setTeams([]); // No match
+          setMonthlyData(totals);
+        } else {
+          setTeams([]); // No match
+        }
+
+      } catch (error) {
+        console.error('Failed to fetch teams:', error);
+      } finally {
+        setLoadingTeams(false);
       }
+    };
 
+    if (teamId) fetchTeams();
+  }, [teamId]);
+
+
+  const handleDeleteTeam = async () => {
+    if (!teams[0]?._id) return;
+
+    const confirmDelete = window.confirm('Are you sure you want to delete this team?');
+
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/team/team/${teams[0]._id}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Team deleted successfully');
+        navigate('/dashboard'); // or wherever your list of teams is
+      } else {
+        alert(result.message || 'Failed to delete team');
+      }
     } catch (error) {
-      console.error('Failed to fetch teams:', error);
-    } finally {
-      setLoadingTeams(false);
+      console.error('Delete error:', error);
+      alert('Server error');
     }
   };
 
-  if (teamId) fetchTeams();
-}, [teamId]);
 
-
-const handleDeleteTeam = async () => {
-  if (!teams[0]?._id) return;
-
-  const confirmDelete = window.confirm('Are you sure you want to delete this team?');
-
-  if (!confirmDelete) return;
-
-  try {
-    const response = await fetch(`http://localhost:5000/api/team/team/${teams[0]._id}`, {
-      method: 'DELETE'
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      alert('Team deleted successfully');
-      navigate('/dashboard'); // or wherever your list of teams is
-    } else {
-      alert(result.message || 'Failed to delete team');
-    }
-  } catch (error) {
-    console.error('Delete error:', error);
-    alert('Server error');
-  }
-};
-
-    
   const [teamMembers] = useState([
     {
       id: 1,
@@ -131,7 +131,7 @@ const handleDeleteTeam = async () => {
     }
   ]);
 
-const [monthlyData, setMonthlyData] = useState([]);
+  const [monthlyData, setMonthlyData] = useState([]);
 
 
 
@@ -143,7 +143,7 @@ const [monthlyData, setMonthlyData] = useState([]);
     const normalizedRadius = radius - strokeWidth * 2;
     const circumference = normalizedRadius * 2 * Math.PI;
     const strokeDasharray = `${(percentage / 100) * circumference} ${circumference}`;
-    
+
     return (
       <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <svg
@@ -419,23 +419,23 @@ const [monthlyData, setMonthlyData] = useState([]);
           </div>
           <div style={styles.headerRight}>
             <button style={styles.deleteButton} onClick={handleDeleteTeam}>
-  <span>🗑️</span>
-  Delete Team
-</button>
+              <span>🗑️</span>
+              Delete Team
+            </button>
 
             <button
-  style={styles.addButton}
-  onClick={() => {
-    if (teams[0]) {
-      navigate(`/add-member/${teams[0]._id}`, {
-        state: { teamName: teams[0].title }
-      });
-    }
-  }}
->
-  <span>+</span>
-  Add Team Member
-</button>
+              style={styles.addButton}
+              onClick={() => {
+                if (teams[0]) {
+                  navigate(`/add-member/${teams[0]._id}`, {
+                    state: { teamName: teams[0].title }
+                  });
+                }
+              }}
+            >
+              <span>+</span>
+              Add Team Member
+            </button>
 
           </div>
         </div>
@@ -464,77 +464,77 @@ const [monthlyData, setMonthlyData] = useState([]);
           </div>
 
           {/* Completion Rate */}
-          
-         <div style={styles.progressContainer}>
-  <CircularProgress
-    percentage={Math.round(
-      (completedStats.completed /
-        (completedStats.completed + completedStats.remaining || 1)) * 100
-    )}
-  />
-  <p style={styles.progressLabel}>Completion Rate</p>
-  <div style={styles.legend}>
-    <div style={styles.legendItem}>
-      <div style={{ ...styles.legendDot, backgroundColor: '#3b82f6' }} />
-      <span style={styles.legendText}>Success</span>
-    </div>
-    <div style={styles.legendItem}>
-      <div style={{ ...styles.legendDot, backgroundColor: '#d1d5db' }} />
-      <span style={styles.legendText}>Left Behind</span>
-    </div>
-  </div>
-</div>
+
+          <div style={styles.progressContainer}>
+            <CircularProgress
+              percentage={Math.round(
+                (completedStats.completed /
+                  (completedStats.completed + completedStats.remaining || 1)) * 100
+              )}
+            />
+            <p style={styles.progressLabel}>Completion Rate</p>
+            <div style={styles.legend}>
+              <div style={styles.legendItem}>
+                <div style={{ ...styles.legendDot, backgroundColor: '#3b82f6' }} />
+                <span style={styles.legendText}>Success</span>
+              </div>
+              <div style={styles.legendItem}>
+                <div style={{ ...styles.legendDot, backgroundColor: '#d1d5db' }} />
+                <span style={styles.legendText}>Left Behind</span>
+              </div>
+            </div>
+          </div>
 
         </div>
 
         {/* Team Members Table */}
-{/* Dynamic Team Members Table from Backend */}
-<div style={{ ...styles.tableContainer, marginTop: '32px' }}>
-  <h2 style={{ ...styles.chartTitle, padding: '24px' }}>All Team Members (Fetched)</h2>
-  {loadingTeams ? (
-    <p style={{ padding: '24px' }}>Loading teams...</p>
-  ) : teams.length === 0 ? (
-    <p style={{ padding: '24px' }}>No teams found.</p>
-  ) : (
-    <table style={styles.table}>
-      <thead style={styles.tableHeader}>
-        <tr>
-          <th style={styles.tableHeaderCell}>Name</th>
-          <th style={styles.tableHeaderCell}>Email</th>
-          <th style={styles.tableHeaderCell}>Department</th>
-          <th style={styles.tableHeaderCell}>Role</th>
-          <th style={styles.tableHeaderCell}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-  {teams.map((team) =>
-    team.members?.map((member, idx) => {
-      return (
-        <tr key={`${team._id}-${idx}`} style={styles.tableRow}>
-          <td style={styles.tableCell}>
-            <div style={styles.userCell}>
-              <div style={styles.avatar}>👤</div>
-              <span style={styles.userName}>{member.name || 'N/A'}</span>
-            </div>
-          </td>
-          <td style={styles.tableCell}>{member.email || 'N/A'}</td>
-          <td style={styles.tableCell}>{member.department || 'N/A'}</td>
-          <td style={styles.tableCell}>{member.permission || 'N/A'}</td>
-          <td style={styles.tableCell}>
-            <div style={styles.actionButtons}>
-              <button style={styles.editButton}>✏️</button>
-              <button style={styles.viewButton}>👁️ View</button>
-            </div>
-          </td>
-        </tr>
-      );
-    })
-  )}
-</tbody>
+        {/* Dynamic Team Members Table from Backend */}
+        <div style={{ ...styles.tableContainer, marginTop: '32px' }}>
+          <h2 style={{ ...styles.chartTitle, padding: '24px' }}>All Team Members (Fetched)</h2>
+          {loadingTeams ? (
+            <p style={{ padding: '24px' }}>Loading teams...</p>
+          ) : teams.length === 0 ? (
+            <p style={{ padding: '24px' }}>No teams found.</p>
+          ) : (
+            <table style={styles.table}>
+              <thead style={styles.tableHeader}>
+                <tr>
+                  <th style={styles.tableHeaderCell}>Name</th>
+                  <th style={styles.tableHeaderCell}>Email</th>
+                  <th style={styles.tableHeaderCell}>Department</th>
+                  <th style={styles.tableHeaderCell}>Role</th>
+                  <th style={styles.tableHeaderCell}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teams.map((team) =>
+                  team.members?.map((member, idx) => {
+                    return (
+                      <tr key={`${team._id}-${idx}`} style={styles.tableRow}>
+                        <td style={styles.tableCell}>
+                          <div style={styles.userCell}>
+                            <div style={styles.avatar}>👤</div>
+                            <span style={styles.userName}>{member.name || 'N/A'}</span>
+                          </div>
+                        </td>
+                        <td style={styles.tableCell}>{member.email || 'N/A'}</td>
+                        <td style={styles.tableCell}>{member.department || 'N/A'}</td>
+                        <td style={styles.tableCell}>{member.permission || 'N/A'}</td>
+                        <td style={styles.tableCell}>
+                          <div style={styles.actionButtons}>
+                            <button style={styles.editButton}>✏️</button>
+                            <button style={styles.viewButton}>👁️ View</button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
 
-    </table>
-  )}
-</div>
+            </table>
+          )}
+        </div>
 
       </div>
     </div>
