@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+ const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
@@ -13,25 +13,80 @@ const Dashboard = () => {
   const [userRole, setUserRole] = useState('');
   const [assignedTasks, setAssignedTasks] = useState([]);
   const [userTasks, setUserTasks] = useState([]);
-
-
+  const [tasks, setTasks] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [auditorFiles, setAuditorFiles] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+
   const navigate = useNavigate();
 const handleTaskClick = (task, userName) => {
   const isEmployee = userRole === 'employee';
+  const isAuditor = userRole === 'Auditor';
 
-  navigate(`${isEmployee ? `/employee-task/${task._id}` : `/task/${task._id}`}`, {
-    state: {
-      title: task.title,
-      description: task.description,
-      assignedBy: task.assignedBy,
-      assignee: userName,
-      deadline: task.deadline,
-      status: task.status,
-      priority: task.priority,
-    },
-  });
+  // Ensure we have all required task properties
+  const taskData = {
+    title: task.title || task.taskTitle || 'Untitled Task',
+    description: task.description || task.taskDescription || '',
+    assignedBy: task.assignedBy || { username: task.assignedByName || 'Unknown' },
+    assignee: userName || task.assignedTo || 'Unknown',
+    deadline: task.deadline || null,
+    status: task.status || 'pending',
+    priority: task.priority || 'medium',
+    fileData: task.fileData || null,
+    fileName: task.fileName || null,
+    fileType: task.fileType || null,
+    fullTask: task
+  };
+
+  if (isAuditor) {
+    navigate(`/auditor-task/${task._id || task.id}`, {
+      state: taskData
+    });
+  } else {
+    navigate(isEmployee ? `/employee-task/${task._id}` : `/task/${task._id}`, {
+      state: taskData
+    });
+  }
 };
+
+
+const userId = localStorage.getItem('userId');
+const fetchAuditorFiles = async () => {
+  try {
+    const res = await fetch(`http://localhost:5000/api/team/auditor-files/${userId}`);
+    if (!res.ok) throw new Error('Failed to fetch files');
+    
+    const data = await res.json();
+    
+    if (data.success && data.files) {
+      const processedFiles = data.files.map(file => ({
+        ...file,
+        id: file._id,
+        fileData: file.fileData?.toString('base64'),
+        // Task information is now included in the response
+        taskTitle: file.taskTitle,
+        taskDescription: file.taskDescription,
+        assignedByName: file.assignedByName || file.uploadedByName || 'Unknown'
+      }));
+      setAuditorFiles(processedFiles);
+    }
+  } catch (err) {
+    console.error('Error fetching files:', err);
+    setAuditorFiles([]);
+  }
+};
+useEffect(() => {
+  if (userRole === 'Auditor') {
+    fetchAuditorFiles();
+  }
+}, [userRole]); // Fetch files when user role is set to Auditor
+  const handleViewFile = (file) => {
+    setSelectedFile(file);
+  };
+
+  const handleCloseFile = () => {
+    setSelectedFile(null);
+  };
 
 useEffect(() => {
   const fetchTeams = async () => {
@@ -490,7 +545,7 @@ useEffect(() => {
         const data = await res.json();
         if (res.ok) {
           setUserRole(data.role);
-          
+          console.log(data.role);
         }
       } catch (err) {
         console.error('Error fetching user role:', err);
@@ -602,6 +657,7 @@ setUserTasks(taskData.tasks || []);
     const date = new Date(dateString);
     return date.toLocaleDateString();
   };
+
 
   const renderHRView = () => (
     <div style={styles.tableContainer}>
@@ -766,6 +822,177 @@ console.log("User Tasks:", userTasks);
 userTasks.forEach((task, i) => {
   console.log(`Task ${i + 1}:`, task.title, "| Status:", task.status);
 });
+
+
+// Add these helper functions to your component
+
+const getFileIcon = (fileType) => {
+  if (!fileType) return '📄';
+  
+  if (fileType.includes('image')) return '🖼️';
+  if (fileType.includes('pdf')) return '📕';
+  if (fileType.includes('word')) return '📝';
+  if (fileType.includes('excel') || fileType.includes('spreadsheet')) return '📊';
+  if (fileType.includes('zip') || fileType.includes('compressed')) return '🗜️';
+  if (fileType.includes('video')) return '🎬';
+  if (fileType.includes('audio')) return '🎵';
+  
+  return '📄';
+};
+
+const formatFileSize = (base64String) => {
+  if (!base64String) return '0 KB';
+  const bytes = Math.ceil(base64String.length * 3 / 4);
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1048576).toFixed(1)} MB`;
+};
+
+const renderFileViewerModal = () => {
+  const fileExtension = selectedFile.fileName.split('.').pop().toLowerCase();
+  
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '20px',
+        borderRadius: '8px',
+        width: '80%',
+        maxWidth: '800px',
+        maxHeight: '80vh',
+        overflow: 'auto',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '600' }}>
+            {selectedFile.fileName}
+            <span style={{ fontSize: '14px', color: '#666', marginLeft: '10px' }}>
+              ({formatFileSize(selectedFile.fileData)})
+            </span>
+          </h3>
+          <button 
+            onClick={handleCloseFile}
+            style={{
+              backgroundColor: '#ff6b6b',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '5px 10px',
+              cursor: 'pointer'
+            }}
+          >
+            Close
+          </button>
+        </div>
+        
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          {renderFileContent(selectedFile, fileExtension)}
+        </div>
+        
+        <div style={{ marginTop: '15px', textAlign: 'center' }}>
+          <a 
+            href={`data:${selectedFile.fileType};base64,${selectedFile.fileData}`} 
+            download={selectedFile.fileName}
+            style={{
+              display: 'inline-block',
+              padding: '8px 16px',
+              backgroundColor: '#4285f4',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '4px'
+            }}
+          >
+            Download File
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const renderFileContent = (file, extension) => {
+  const base64Data = file.fileData;
+  const dataUrl = `data:${file.fileType};base64,${base64Data}`;
+  
+  // Image files
+  if (file.fileType.startsWith('image/')) {
+    return <img src={dataUrl} alt={file.fileName} style={{ maxWidth: '100%', maxHeight: '60vh' }} />;
+  }
+  
+  // PDF files
+  if (file.fileType === 'application/pdf') {
+    return (
+      <embed 
+        src={dataUrl}
+        type="application/pdf"
+        width="100%"
+        height="500px"
+      />
+    );
+  }
+  
+  // Text-based files
+  const textExtensions = ['txt', 'csv', 'json', 'xml', 'html', 'css', 'js'];
+  if (textExtensions.includes(extension)) {
+    return (
+      <pre style={{ 
+        whiteSpace: 'pre-wrap',
+        wordWrap: 'break-word',
+        backgroundColor: '#f5f5f5',
+        padding: '15px',
+        borderRadius: '4px',
+        maxHeight: '60vh',
+        overflow: 'auto',
+        width: '100%'
+      }}>
+        {atob(base64Data)}
+      </pre>
+    );
+  }
+  
+  // Video files
+  if (file.fileType.startsWith('video/')) {
+    return (
+      <video controls style={{ maxWidth: '100%', maxHeight: '60vh' }}>
+        <source src={dataUrl} type={file.fileType} />
+        Your browser does not support the video tag.
+      </video>
+    );
+  }
+  
+  // Audio files
+  if (file.fileType.startsWith('audio/')) {
+    return (
+      <audio controls>
+        <source src={dataUrl} type={file.fileType} />
+        Your browser does not support the audio element.
+      </audio>
+    );
+  }
+  
+  // Default fallback
+  return (
+    <div style={{ textAlign: 'center', padding: '20px' }}>
+      <div style={{ fontSize: '48px', marginBottom: '20px' }}>
+        {getFileIcon(file.fileType)}
+      </div>
+      <p>Preview not available for this file type</p>
+      <p style={{ fontSize: '12px', color: '#666' }}>{file.fileType}</p>
+    </div>
+  );
+};
 const renderEmployeeDashboard = () => (
   <div style={styles.tasksSection}>
     {/* To Do Section */}
@@ -885,8 +1112,160 @@ const renderEmployeeDashboard = () => (
   </div>
 );
 
+ useEffect(() => {
+    if (userRole === 'Auditor') {
+      fetchAuditorFiles();
+    }
+  }, [userRole]);
 
+const renderAuditorView = () => {
+  const auditorStyles = {
+    auditorContainer: {
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+      padding: '20px',
+      marginBottom: '30px',
+    },
+    auditorHeader: {
+      fontSize: '20px',
+      fontWeight: '600',
+      color: '#333',
+      marginBottom: '20px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    taskItem: {
+      backgroundColor: 'white',
+      padding: '15px',
+      borderRadius: '8px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+      marginBottom: '15px',
+      cursor: 'pointer',
+      borderLeft: '4px solid #4285f4',
+    },
+    taskTitle: {
+      fontSize: '16px',
+      fontWeight: '600',
+      color: '#333',
+      marginBottom: '8px',
+    },
+    taskDescription: {
+      fontSize: '14px',
+      color: '#666',
+      marginBottom: '8px',
+    },
+    taskMeta: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: '12px',
+      color: '#888',
+    },
+    fileModal: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+    },
+    fileModalContent: {
+      backgroundColor: 'white',
+      padding: '20px',
+      borderRadius: '8px',
+      width: '80%',
+      maxWidth: '800px',
+      maxHeight: '80vh',
+      overflow: 'auto',
+      display: 'flex',
+      flexDirection: 'column',
+    },
+    fileModalHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '15px',
+      borderBottom: '1px solid #eee',
+      paddingBottom: '15px',
+    },
+    closeButton: {
+      backgroundColor: '#ff6b6b',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      padding: '5px 10px',
+      cursor: 'pointer',
+    },
+    markClosedButton: {
+      backgroundColor: '#34a853',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      padding: '8px 16px',
+      cursor: 'pointer',
+      marginTop: '15px',
+      alignSelf: 'flex-end',
+    },
+  };
 
+ return (
+    <div style={auditorStyles.auditorContainer}>
+      {/* ... (keep header code) */}
+
+      {auditorFiles.length === 0 ? (
+        <p style={{ color: '#666', textAlign: 'center', padding: '20px' }}>
+          No tasks have been allocated to you yet.
+        </p>
+      ) : (
+        <div>
+          {auditorFiles.map((file) => (
+            <div key={file.id} style={auditorStyles.taskItem}>
+              {/* Make the title clickable for task details */}
+              <div 
+                style={{...auditorStyles.taskTitle, cursor: 'pointer'}}
+                onClick={() => handleTaskClick(file, usernamevalue)}
+              >
+                {file.taskTitle || 'Untitled Task'}
+              </div>
+              
+              <div style={auditorStyles.taskDescription}>
+                {file.taskDescription || 'No description available'}
+              </div>
+              
+              <div style={auditorStyles.taskMeta}>
+                <span>Assigned by: {file.assignedByName || 'Unknown'}</span>
+                
+                {/* Make the file info clickable for file viewing */}
+                <span 
+                  style={{cursor: 'pointer', textDecoration: 'underline'}}
+                  onClick={() => handleViewFile(file)}
+                >
+                  File: {file.fileName}
+                </span>
+                
+                <span>
+                  {file.uploadedAt ? new Date(file.uploadedAt).toLocaleDateString() : 'Unknown date'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Keep the existing file modal code */}
+      {selectedFile && (
+        <div style={auditorStyles.fileModal}>
+          {/* ... (existing modal content) */}
+        </div>
+      )}
+    </div>
+  );
+};
 
 
 
@@ -1032,12 +1411,13 @@ const renderEmployeeDashboard = () => (
 
       {/* Conditional rendering based on user role */}
       {['hr', 'HR'].includes(userRole) ? renderHRView()
- : userRole === 'manager' ? renderEmployeeView()
- : userRole === 'employee' ? renderEmployeeDashboard()
- : null}
+       : userRole === 'manager' ? renderEmployeeView()
+       : userRole === 'employee' ? renderEmployeeDashboard()
+       : userRole === 'Auditor' ? renderAuditorView()
+       : null}
 
 
-
+{userRole.toLowerCase() !== 'auditor' && (
       <div style={styles.teamsSection}>
         <div style={styles.teamsTabs}>
           <div style={styles.filterGroup}>
@@ -1073,6 +1453,7 @@ const renderEmployeeDashboard = () => (
 >
   {team.title}
 </div>
+
 
         <div style={styles.teamDesc}>{team.description || 'No description'}</div>
         <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
@@ -1111,6 +1492,7 @@ const renderEmployeeDashboard = () => (
 
 
       </div>
+)}
     </div>
   );
 };

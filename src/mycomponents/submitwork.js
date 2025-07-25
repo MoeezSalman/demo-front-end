@@ -28,9 +28,13 @@ const handleSubmit = async () => {
   const formData = new FormData();
   if (selectedFile) formData.append("file", selectedFile);
   if (pasteLink) formData.append("link", pasteLink);
-  formData.append("title", title); // title comes from router state
-formData.append('email',localStorage.getItem('email'));
-formData.append("userId", localStorage.getItem("userId"));
+  formData.append("title", title);
+  formData.append("description", description);  // Send task description
+  formData.append("email", localStorage.getItem('email'));
+  formData.append("userId", localStorage.getItem("userId"));
+  formData.append("uploaderId", localStorage.getItem("userId"));
+  formData.append("uploaderName", localStorage.getItem("name"));
+
   try {
     const res = await fetch("http://localhost:5000/api/auth/upload-work", {
       method: "POST",
@@ -39,7 +43,7 @@ formData.append("userId", localStorage.getItem("userId"));
 
     const data = await res.json();
     if (res.ok) {
-      alert("File submitted successfully!");
+      alert("File submitted successfully with task details!");
     } else {
       alert(data.message || "Upload failed.");
     }

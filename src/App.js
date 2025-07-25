@@ -8,6 +8,7 @@ import EDITTEAM from "./mycomponents/addmember";
 import AddMember from "./mycomponents/newmember"
 import ManagerAssign from "./mycomponents/managerassigning";
 import Work from "./mycomponents/submitwork";
+import AuditorTaskDetail from "./mycomponents/Auditortaskdetail";
 import {
   BrowserRouter as Router,
   Routes,
@@ -27,6 +28,7 @@ function App() {
       <div className="App">
         <Router>
           <Routes>
+            <Route path="/auditor-task/:taskId" element={<AuditorTaskDetail />} />
             <Route path="/task/:id" element={<ManagerAssign />} />
             <Route path="/addmember/:id" element={<EDITTEAM />} />
             <Route path="/add-member/:teamId" element={<AddMember />} />
