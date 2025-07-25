@@ -56,7 +56,7 @@ const TaskDetailPage = () => {
     try {
       let url = `http://localhost:5000/api/team/task/files`;
       const params = new URLSearchParams();
-      
+
       if (taskId) params.append('taskId', taskId);
       else if (title) params.append('title', encodeURIComponent(title));
       else {
@@ -90,33 +90,33 @@ const TaskDetailPage = () => {
 
   // Search team members
   // In your TaskDetailPage component
-const searchTeamMembers = async (query) => {
-  if (!query.trim()) {
-    setSuggestions([]);
-    return;
-  }
-
-  setIsLoadingTeamMembers(true);
-  try {
-    const currentUserId = localStorage.getItem('userId'); // Get from localStorage
-    
-    const res = await fetch(
-      `http://localhost:5000/api/team/search-team-members?query=${encodeURIComponent(query)}&currentUserId=${currentUserId}`
-    );
-
-    if (!res.ok) {
-      throw new Error(await res.text());
+  const searchTeamMembers = async (query) => {
+    if (!query.trim()) {
+      setSuggestions([]);
+      return;
     }
 
-    const data = await res.json();
-    setSuggestions(data);
-  } catch (err) {
-    console.error('Search failed:', err);
-    setSuggestions([]);
-  } finally {
-    setIsLoadingTeamMembers(false);
-  }
-};
+    setIsLoadingTeamMembers(true);
+    try {
+      const currentUserId = localStorage.getItem('userId'); // Get from localStorage
+
+      const res = await fetch(
+        `http://localhost:5000/api/team/search-team-members?query=${encodeURIComponent(query)}&currentUserId=${currentUserId}`
+      );
+
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+
+      const data = await res.json();
+      setSuggestions(data);
+    } catch (err) {
+      console.error('Search failed:', err);
+      setSuggestions([]);
+    } finally {
+      setIsLoadingTeamMembers(false);
+    }
+  };
 
   useEffect(() => {
     if (title || taskId) {
@@ -143,7 +143,7 @@ const searchTeamMembers = async (query) => {
     try {
       const response = await fetch(`http://localhost:5000/api/auth/assign-task/${selectedUser.username}`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
@@ -216,7 +216,7 @@ const searchTeamMembers = async (query) => {
       alert('No file selected');
       return;
     }
-    
+
     if (!file.fileData) {
       console.error('File data is missing:', file);
       alert('File content is not available');
@@ -242,19 +242,19 @@ const searchTeamMembers = async (query) => {
 
   const renderFileContent = () => {
     if (!selectedFile) return null;
-    
+
     try {
       // For images
       if (selectedFile.fileType.startsWith('image/')) {
         return (
-          <img 
-            src={`data:${selectedFile.fileType};base64,${selectedFile.fileData}`} 
+          <img
+            src={`data:${selectedFile.fileType};base64,${selectedFile.fileData}`}
             alt={selectedFile.fileName}
             style={{ maxWidth: '100%', maxHeight: '80vh' }}
           />
         );
       }
-      
+
       // For PDFs
       if (selectedFile.fileType === 'application/pdf') {
         return (
@@ -266,12 +266,12 @@ const searchTeamMembers = async (query) => {
           />
         );
       }
-      
+
       // For text files
       if (selectedFile.fileType.startsWith('text/')) {
         const textContent = atob(selectedFile.fileData);
         return (
-          <pre style={{ 
+          <pre style={{
             whiteSpace: 'pre-wrap',
             backgroundColor: '#f5f5f5',
             padding: '16px',
@@ -286,7 +286,7 @@ const searchTeamMembers = async (query) => {
     } catch (err) {
       console.error('Error rendering file:', err);
     }
-    
+
     // Default view for unsupported types
     return (
       <div style={{ textAlign: 'center', padding: '32px' }}>
@@ -679,7 +679,7 @@ const searchTeamMembers = async (query) => {
           <button style={styles.backButton} onClick={() => navigate(-1)}>←</button>
           <h1 style={styles.title}>{taskData.title}</h1>
         </div>
-        <button 
+        <button
           onClick={handleMarkAsClosed}
           style={styles.markButton}
         >
@@ -699,17 +699,17 @@ const searchTeamMembers = async (query) => {
               <div style={styles.statusDot}></div>
               <span style={styles.labelText}>Status:</span>
             </div>
-            <span style={{...styles.metadataValue, ...styles.statusValue}}>
+            <span style={{ ...styles.metadataValue, ...styles.statusValue }}>
               {isCompleted ? 'Completed' : taskData.status}
             </span>
           </div>
 
           <div style={styles.metadataRow}>
             <div style={styles.metadataLabel}>
-              <span style={{color: '#dc2626'}}>🚩</span>
+              <span style={{ color: '#dc2626' }}>🚩</span>
               <span style={styles.labelText}>Priority:</span>
             </div>
-            <span style={{...styles.metadataValue, ...styles.priorityValue}}>
+            <span style={{ ...styles.metadataValue, ...styles.priorityValue }}>
               {taskData.priority}
             </span>
           </div>
@@ -736,7 +736,7 @@ const searchTeamMembers = async (query) => {
                 ) : suggestions.length > 0 ? (
                   <ul style={styles.suggestionsList}>
                     {suggestions.map(u => (
-                      <li 
+                      <li
                         key={u._id}
                         onClick={() => setSelectedUser(u)}
                         style={{
@@ -744,7 +744,7 @@ const searchTeamMembers = async (query) => {
                           ...(selectedUser?._id === u._id ? styles.selectedSuggestion : {})
                         }}
                       >
-                        {u.username} <small style={{color: '#666'}}>({u.email})</small>
+                        {u.username} <small style={{ color: '#666' }}>({u.email})</small>
                       </li>
                     ))}
                   </ul>
@@ -761,9 +761,9 @@ const searchTeamMembers = async (query) => {
                       Confirm
                     </button>
                     <button
-                      onClick={() => { 
-                        setShowSearch(false); 
-                        setSelectedUser(null); 
+                      onClick={() => {
+                        setShowSearch(false);
+                        setSelectedUser(null);
                         setSearchTerm('');
                       }}
                       style={styles.cancelButton}
@@ -810,19 +810,19 @@ const searchTeamMembers = async (query) => {
                   <div key={file._id} style={styles.fileItem}>
                     <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
                       <div style={styles.fileIcon}>
-                        {file.fileType.startsWith('image/') ? '🖼️' : 
-                         file.fileType === 'application/pdf' ? '📄' : '📁'}
+                        {file.fileType.startsWith('image/') ? '🖼️' :
+                          file.fileType === 'application/pdf' ? '📄' : '📁'}
                       </div>
                       <div style={styles.fileInfo}>
                         <div style={styles.fileName}>{file.fileName}</div>
                         <div style={styles.fileMeta}>
-                          From task: {file.taskTitle} • 
-                          Uploaded by {file.uploadedByName} • 
+                          From task: {file.taskTitle} •
+                          Uploaded by {file.uploadedByName} •
                           {Math.round(file.fileSize / 1024)} KB
                         </div>
                       </div>
                     </div>
-                    <button 
+                    <button
                       onClick={() => handleViewFile(file)}
                       style={styles.viewButton}
                     >
@@ -864,14 +864,14 @@ const searchTeamMembers = async (query) => {
                   <div style={styles.historyStatus}>Status: {item.status}</div>
                 )}
                 {item.hasFile && (
-                  <button 
+                  <button
                     onClick={() => {
-                      const fileToView = taskFiles.find(f => 
-                        f.fileName === item.fileName || 
+                      const fileToView = taskFiles.find(f =>
+                        f.fileName === item.fileName ||
                         f._id === item.fileId ||
                         f.taskId === item.taskId
                       );
-                      
+
                       if (fileToView) {
                         handleViewFile(fileToView);
                       } else {
@@ -893,7 +893,7 @@ const searchTeamMembers = async (query) => {
       {selectedFile && (
         <div style={styles.fileViewerModal}>
           <div style={styles.fileViewerContent}>
-            <button 
+            <button
               style={styles.closeFileButton}
               onClick={handleCloseFile}
             >

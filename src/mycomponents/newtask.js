@@ -9,39 +9,39 @@ const CreateTaskForm = () => {
   const [priority, setPriority] = useState('High');
   const [selectedHR, setSelectedHR] = useState('');
   const [assignableUsers, setAssignableUsers] = useState([]);
-useEffect(() => {
-  const fetchUsers = async () => {
-    try {
-      // Fetch HR users
-      const hrRes = await fetch('http://localhost:5000/api/auth/hr-users');
-      const hrData = await hrRes.json();
-      setHrUsers(hrData);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // Fetch HR users
+        const hrRes = await fetch('http://localhost:5000/api/auth/hr-users');
+        const hrData = await hrRes.json();
+        setHrUsers(hrData);
 
-      // Fetch Non-HR users
-      const nonHrRes = await fetch('http://localhost:5000/api/auth/non-hr-users');
-      const nonHrData = await nonHrRes.json();
-      setAssignableUsers(nonHrData);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    }
-  };
+        // Fetch Non-HR users
+        const nonHrRes = await fetch('http://localhost:5000/api/auth/non-hr-users');
+        const nonHrData = await nonHrRes.json();
+        setAssignableUsers(nonHrData);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
 
-  fetchUsers();
-}, []);
-const [hrUsers, setHrUsers] = useState([]);
-useEffect(() => {
-  const fetchHRUsers = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/auth/hr-users');
-      const data = await response.json();
-      setHrUsers(data); // expected to be an array of HR user objects
-    } catch (error) {
-      console.error('Error fetching HR users:', error);
-    }
-  };
+    fetchUsers();
+  }, []);
+  const [hrUsers, setHrUsers] = useState([]);
+  useEffect(() => {
+    const fetchHRUsers = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/hr-users');
+        const data = await response.json();
+        setHrUsers(data); // expected to be an array of HR user objects
+      } catch (error) {
+        console.error('Error fetching HR users:', error);
+      }
+    };
 
-  fetchHRUsers();
-}, []);
+    fetchHRUsers();
+  }, []);
 
 
   const styles = {
@@ -221,46 +221,46 @@ useEffect(() => {
     },
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const trimmedTitle = title.trim();
-  const trimmedDescription = description.trim();
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
 
-  if (!trimmedTitle || !trimmedDescription || !assignTo || !deadline || !priority || !selectedHR) {
-    alert('Please fill in all required fields.');
-    return;
-  }
-
-  const taskData = {
-    title: trimmedTitle,
-    description: trimmedDescription,
-    assignTo, 
-    deadline,
-    priority,
-    assignedBy: selectedHR,
-  };
-
-  try {
-    const res = await fetch('http://localhost:5000/api/auth/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(taskData),
-    });
-
-    if (res.ok) {
-      alert('Task created successfully!');
-      // optionally reset form
-    } else {
-      alert('Failed to create task');
+    if (!trimmedTitle || !trimmedDescription || !assignTo || !deadline || !priority || !selectedHR) {
+      alert('Please fill in all required fields.');
+      return;
     }
-  } catch (error) {
-    console.error('Submit failed:', error);
-    alert('An error occurred during submission');
-  }
-};
+
+    const taskData = {
+      title: trimmedTitle,
+      description: trimmedDescription,
+      assignTo,
+      deadline,
+      priority,
+      assignedBy: selectedHR,
+    };
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(taskData),
+      });
+
+      if (res.ok) {
+        alert('Task created successfully!');
+        // optionally reset form
+      } else {
+        alert('Failed to create task');
+      }
+    } catch (error) {
+      console.error('Submit failed:', error);
+      alert('An error occurred during submission');
+    }
+  };
 
 
 
@@ -316,27 +316,27 @@ const handleSubmit = async (e) => {
 
         <div style={styles.formGroupRow}>
           <div style={styles.selectContainer}>
-  <select
-    value={assignTo}
-    onChange={(e) => setAssignTo(e.target.value)}
-    style={styles.select}
-  >
-    <option value="">Select user</option>
-    {assignableUsers.filter(user => user.role === 'manager').length > 0 ? (
-  assignableUsers
-    .filter(user => user.role === 'manager')
-    .map((user) => (
-      <option key={user._id} value={user.username}>
-        {user.username}
-      </option>
-    ))
-) : (
-  <option disabled>No managers found</option>
-)}
+            <select
+              value={assignTo}
+              onChange={(e) => setAssignTo(e.target.value)}
+              style={styles.select}
+            >
+              <option value="">Select user</option>
+              {assignableUsers.filter(user => user.role === 'manager').length > 0 ? (
+                assignableUsers
+                  .filter(user => user.role === 'manager')
+                  .map((user) => (
+                    <option key={user._id} value={user.username}>
+                      {user.username}
+                    </option>
+                  ))
+              ) : (
+                <option disabled>No managers found</option>
+              )}
 
-  </select>
-  <span style={styles.selectIcon}>▼</span>
-</div>
+            </select>
+            <span style={styles.selectIcon}>▼</span>
+          </div>
 
 
           <div style={styles.formGroupHalf}>
@@ -345,12 +345,12 @@ const handleSubmit = async (e) => {
             </div>
             <div style={styles.dateContainer}>
               <input
-  type="date"
-  value={deadline}
-  onChange={(e) => setDeadline(e.target.value)}
-  min={new Date().toISOString().split('T')[0]} // today's date in YYYY-MM-DD
-  style={styles.dateInput}
-/>
+                type="date"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                min={new Date().toISOString().split('T')[0]} // today's date in YYYY-MM-DD
+                style={styles.dateInput}
+              />
 
               <span style={styles.dateIcon}>📅</span>
             </div>
@@ -375,35 +375,35 @@ const handleSubmit = async (e) => {
           </div>
 
           <div style={styles.formGroupHalf}>
-  <div style={styles.label}>Select HR</div>
-  <div style={styles.selectContainer}>
-    <select
-      value={selectedHR}
-      onChange={(e) => setSelectedHR(e.target.value)}
-      style={styles.select}
-    >
-      <option value="">Select user</option>
-      {hrUsers.length > 0 ? (
-        hrUsers.map((user) => (
-          <option key={user._id} value={user.username}>
-            {user.username}
-          </option>
-        ))
-      ) : (
-        <option disabled>No HR users found</option>
-      )}
-    </select>
-    <span style={styles.selectIcon}>▼</span>
-  </div>
-</div>
+            <div style={styles.label}>Select HR</div>
+            <div style={styles.selectContainer}>
+              <select
+                value={selectedHR}
+                onChange={(e) => setSelectedHR(e.target.value)}
+                style={styles.select}
+              >
+                <option value="">Select user</option>
+                {hrUsers.length > 0 ? (
+                  hrUsers.map((user) => (
+                    <option key={user._id} value={user.username}>
+                      {user.username}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>No HR users found</option>
+                )}
+              </select>
+              <span style={styles.selectIcon}>▼</span>
+            </div>
+          </div>
 
         </div>
 
         <div style={styles.buttonContainer}>
-          <button type="button" style={{...styles.button, ...styles.cancelButton}}>
+          <button type="button" style={{ ...styles.button, ...styles.cancelButton }}>
             Cancel
           </button>
-          <button onClick={handleSubmit} style={{...styles.button, ...styles.createButton}}>
+          <button onClick={handleSubmit} style={{ ...styles.button, ...styles.createButton }}>
             Create Task
           </button>
         </div>

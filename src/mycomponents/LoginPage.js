@@ -5,73 +5,73 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-const { instance } = useMsal();
-const navigate = useNavigate();
+  const { instance } = useMsal();
+  const navigate = useNavigate();
   const handleSubmit = async () => {
-  try {
-    const response = await fetch('http://localhost:5000/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await response.json();
-    if (response.ok) {
-      console.log('Login success:', data);
-      console.log(data.userId); 
-      alert("Login success");
-      localStorage.setItem('token', data.token);
+      const data = await response.json();
+      if (response.ok) {
+        console.log('Login success:', data);
+        console.log(data.userId);
+        alert("Login success");
+        localStorage.setItem('token', data.token);
         localStorage.setItem('email', email);
-        localStorage.setItem('name',data.username);
+        localStorage.setItem('name', data.username);
         localStorage.setItem('userId', data.userId);
-      navigate('/dashboard');
-    } else {
-      alert(data.message || 'Login failed');
+        navigate('/dashboard');
+      } else {
+        alert(data.message || 'Login failed');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
     }
-  } catch (err) {
-    console.error('Login error:', err);
-  }
-};
+  };
 
 
-const handleMicrosoftLogin = async () => {
-  try {
-    const loginResponse = await instance.loginPopup({
-      scopes: ['User.Read'],
-    });
+  const handleMicrosoftLogin = async () => {
+    try {
+      const loginResponse = await instance.loginPopup({
+        scopes: ['User.Read'],
+      });
 
-    const idToken = loginResponse.idToken;
-    const account = loginResponse.account;
-    console.log('Microsoft Login Success:', account);
+      const idToken = loginResponse.idToken;
+      const account = loginResponse.account;
+      console.log('Microsoft Login Success:', account);
 
-    // Send token to backend for verification only
-    const response = await fetch('http://localhost:5000/api/auth/verify-ms-login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-    });
+      // Send token to backend for verification only
+      const response = await fetch('http://localhost:5000/api/auth/verify-ms-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (response.ok) {
-      alert('Microsoft login successful');
-      localStorage.setItem('email', account.username);
-      localStorage.setItem('name', data.username);
-      localStorage.setItem('userId', data.userId);
-      console.log(data.userId); 
-      console.log(account.username);
-      console.log(data.username);
-      navigate('/dashboard');
-    } else {
-      alert(data.message || 'Microsoft login failed');
+      if (response.ok) {
+        alert('Microsoft login successful');
+        localStorage.setItem('email', account.username);
+        localStorage.setItem('name', data.username);
+        localStorage.setItem('userId', data.userId);
+        console.log(data.userId);
+        console.log(account.username);
+        console.log(data.username);
+        navigate('/dashboard');
+      } else {
+        alert(data.message || 'Microsoft login failed');
+      }
+    } catch (err) {
+      console.error('Microsoft login error:', err);
+      alert('Microsoft login failed');
     }
-  } catch (err) {
-    console.error('Microsoft login error:', err);
-    alert('Microsoft login failed');
-  }
-};
+  };
 
 
 
@@ -191,25 +191,25 @@ const handleMicrosoftLogin = async () => {
       transition: 'background-color 0.2s'
     },
     footer: {
-    position: 'fixed',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: '#f1f1f1',
-    padding: '10px 20px',
-    textAlign: 'center',
-  },
-  footerLinks: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '20px',
-  },
-  footerLink: {
-    background: 'none',
-    border: 'none',
-    color: '#494747ff',
-    cursor: 'pointer',
-    fontSize: '12px',
-  }
+      position: 'fixed',
+      bottom: 0,
+      width: '100%',
+      backgroundColor: '#f1f1f1',
+      padding: '10px 20px',
+      textAlign: 'center',
+    },
+    footerLinks: {
+      display: 'flex',
+      justifyContent: 'center',
+      gap: '20px',
+    },
+    footerLink: {
+      background: 'none',
+      border: 'none',
+      color: '#494747ff',
+      cursor: 'pointer',
+      fontSize: '12px',
+    }
   };
 
   return (
@@ -267,26 +267,26 @@ const handleMicrosoftLogin = async () => {
           >
             Login
           </button>
-          
+
           <button
-  onClick={handleMicrosoftLogin}
-  style={{
-    width: '100%',
-    padding: '12px',
-    backgroundColor: '#2F2F94',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    fontSize: '16px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s'
-  }}
-  onMouseOver={(e) => e.target.style.backgroundColor = '#1a1a6b'}
-  onMouseOut={(e) => e.target.style.backgroundColor = '#2F2F94'}
->
-  Login with Microsoft
-</button>
+            onClick={handleMicrosoftLogin}
+            style={{
+              width: '100%',
+              padding: '12px',
+              backgroundColor: '#2F2F94',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '16px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#1a1a6b'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#2F2F94'}
+          >
+            Login with Microsoft
+          </button>
 
           <button
             onClick={() => console.log('Sign up clicked')}
@@ -299,17 +299,17 @@ const handleMicrosoftLogin = async () => {
         </div>
 
 
-        
+
       </div>
       <div style={styles.footer}>
-          <div style={styles.footerLinks}>
-            <button style={styles.footerLink}>Terms & Conditions</button>
-            <button style={styles.footerLink}>Privacy Policy</button>
-            <button style={styles.footerLink}>Contact Us</button>
-          </div>
+        <div style={styles.footerLinks}>
+          <button style={styles.footerLink}>Terms & Conditions</button>
+          <button style={styles.footerLink}>Privacy Policy</button>
+          <button style={styles.footerLink}>Contact Us</button>
         </div>
+      </div>
     </div>
-    
+
   );
 };
 

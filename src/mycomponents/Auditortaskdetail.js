@@ -16,7 +16,7 @@ const AuditorTaskDetail = () => {
     fileType,
     fullTask
   } = location.state || {};
-  
+
   const [historyItems, setHistoryItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -205,7 +205,7 @@ const AuditorTaskDetail = () => {
     try {
       // Check if we have a valid username to start with
       const initialUsername = assignedBy?.username || assignee;
-      
+
       if (!initialUsername || initialUsername === 'undefined') {
         console.warn('No valid username found for fetching history');
         setLoading(false);
@@ -214,7 +214,7 @@ const AuditorTaskDetail = () => {
 
       // First get the full chain of users involved in this task's assignment
       const assignmentChain = await getAssignmentChain(initialUsername);
-      
+
       // Then fetch history for each user in the chain
       const allHistory = [];
       for (const username of assignmentChain) {
@@ -230,7 +230,7 @@ const AuditorTaskDetail = () => {
           }
         }
       }
-      
+
       // Process and merge all history items
       const processedHistory = allHistory.map(item => ({
         id: item.id,
@@ -244,7 +244,7 @@ const AuditorTaskDetail = () => {
 
       // Sort by date (newest first)
       processedHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
+
       setHistoryItems(processedHistory);
     } catch (err) {
       console.error('Error fetching assignment history:', err);
@@ -263,23 +263,23 @@ const AuditorTaskDetail = () => {
     try {
       let currentUsername = initialUsername;
       let keepLooking = true;
-      
+
       while (keepLooking) {
         if (!currentUsername || currentUsername === 'undefined') {
           break;
         }
 
         const res = await fetch(`http://localhost:5000/api/team/history/${currentUsername}?title=${encodeURIComponent(title)}`);
-        
+
         if (res.ok) {
           const data = await res.json();
-          
+
           if (Array.isArray(data) && data.length > 0) {
             // Find who assigned the task to the current user
-            const assignment = data.find(item => 
+            const assignment = data.find(item =>
               item.action.includes(`Assigned to ${currentUsername}`)
             );
-            
+
             if (assignment && assignment.user && assignment.user !== 'undefined' && !chain.includes(assignment.user)) {
               chain.push(assignment.user);
               currentUsername = assignment.user;
@@ -297,7 +297,7 @@ const AuditorTaskDetail = () => {
     } catch (err) {
       console.error('Error building assignment chain:', err);
     }
-    
+
     return chain;
   };
 
@@ -368,7 +368,7 @@ const AuditorTaskDetail = () => {
                   ✅ Close Task
                 </button>
 
-                <button 
+                <button
                   style={styles.fileButton}
                   onClick={() => window.open(`data:${fileType};base64,${fileData}`, '_blank')}
                 >
@@ -389,7 +389,7 @@ const AuditorTaskDetail = () => {
         {/* Assignment History */}
         <div style={styles.card}>
           <h2 style={styles.sectionTitle}>Assignment History</h2>
-          
+
           {loading ? (
             <p>Loading history...</p>
           ) : historyItems.length > 0 ? (

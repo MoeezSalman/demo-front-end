@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom'; 
+import { useLocation } from 'react-router-dom';
 
 const BudgetReviewPage = () => {
   const [selectedFile, setSelectedFile] = useState(null);
- const location = useLocation();
+  const location = useLocation();
   const {
     title,
     description,
@@ -13,49 +13,49 @@ const BudgetReviewPage = () => {
     status,
     priority
   } = location.state || {};
-  
-const handleFileChange = (e) => {
-  setSelectedFile(e.target.files[0]);
-};
+
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
 
   const [pasteLink, setPasteLink] = useState('');
-const handleSubmit = async () => {
-  if (!selectedFile && !pasteLink) {
-    alert("Please upload a file or paste a link.");
-    return;
-  }
-
-  const formData = new FormData();
-  if (selectedFile) formData.append("file", selectedFile);
-  if (pasteLink) formData.append("link", pasteLink);
-  formData.append("title", title);
-  formData.append("description", description);  // Send task description
-  formData.append("email", localStorage.getItem('email'));
-  formData.append("userId", localStorage.getItem("userId"));
-  formData.append("uploaderId", localStorage.getItem("userId"));
-  formData.append("uploaderName", localStorage.getItem("name"));
-
-  try {
-    const res = await fetch("http://localhost:5000/api/auth/upload-work", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      alert("File submitted successfully with task details!");
-    } else {
-      alert(data.message || "Upload failed.");
+  const handleSubmit = async () => {
+    if (!selectedFile && !pasteLink) {
+      alert("Please upload a file or paste a link.");
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong.");
-  }
-};
+
+    const formData = new FormData();
+    if (selectedFile) formData.append("file", selectedFile);
+    if (pasteLink) formData.append("link", pasteLink);
+    formData.append("title", title);
+    formData.append("description", description);  // Send task description
+    formData.append("email", localStorage.getItem('email'));
+    formData.append("userId", localStorage.getItem("userId"));
+    formData.append("uploaderId", localStorage.getItem("userId"));
+    formData.append("uploaderName", localStorage.getItem("name"));
+
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/upload-work", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("File submitted successfully with task details!");
+      } else {
+        alert(data.message || "Upload failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong.");
+    }
+  };
 
 
   return (
-    
+
     <div style={{
       minHeight: '100vh',
       backgroundColor: '#f5f5f5',
@@ -98,7 +98,7 @@ const handleSubmit = async () => {
               {title || "Task Detail"}
             </h1>
           </div>
-          <button  onClick={handleSubmit} style={{
+          <button onClick={handleSubmit} style={{
             backgroundColor: '#3b82f6',
             color: 'white',
             border: 'none',
@@ -219,9 +219,9 @@ const handleSubmit = async () => {
                     {typeof assignee === 'object' ? assignee.username : assignee || "Unknown"}
 
                   </span>
-                  
+
                 </div>
-                
+
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -259,9 +259,9 @@ const handleSubmit = async () => {
                     {typeof assignedBy === 'object' ? assignedBy.username : assignedBy || "Unknown"}
 
                   </span>
-                  
+
                 </div>
-                
+
               </div>
 
               {/* Department */}
@@ -316,7 +316,7 @@ const handleSubmit = async () => {
             }}>
               Upload File:
             </h2>
-            
+
             {/* Upload Area */}
             <div style={{
               border: '2px dashed #d1d5db',
@@ -341,10 +341,10 @@ const handleSubmit = async () => {
                 </span>
 
                 <input
-  type="file"
-  onChange={handleFileChange}
-  style={{ marginBottom: "16px" }}
-/>
+                  type="file"
+                  onChange={handleFileChange}
+                  style={{ marginBottom: "16px" }}
+                />
               </div>
             </div>
 

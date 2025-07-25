@@ -7,7 +7,7 @@ const CreateNewTeam = () => {
   const [selectedRole, setSelectedRole] = useState('Admin');
   const [suggestions, setSuggestions] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
-const [assignedToId, setAssignedToId] = useState('');
+  const [assignedToId, setAssignedToId] = useState('');
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -26,56 +26,56 @@ const [assignedToId, setAssignedToId] = useState('');
     fetchSuggestions();
   }, [searchTerm]);
 
-const addMemberToTeam = (user) => {
-  if (!selectedMembers.find(member => member._id === user._id)) {
-    const departmentToAssign = selectedDepartment !== 'All' ? selectedDepartment : 'N/A';
+  const addMemberToTeam = (user) => {
+    if (!selectedMembers.find(member => member._id === user._id)) {
+      const departmentToAssign = selectedDepartment !== 'All' ? selectedDepartment : 'N/A';
 
-    setSelectedMembers([
-      ...selectedMembers,
-      { ...user, permission: 'Can View', department: departmentToAssign }
-    ]);
-  }
-  setSearchTerm('');
-  setSuggestions([]);
-};
+      setSelectedMembers([
+        ...selectedMembers,
+        { ...user, permission: 'Can View', department: departmentToAssign }
+      ]);
+    }
+    setSearchTerm('');
+    setSuggestions([]);
+  };
 
 
 
   const handleCreateTeam = async () => {
     console.log("Sending payload:", {
-  title: teamTitle,
-  assignedToId,
-  members: selectedMembers.map(member => ({
-    userId: member._id,
-    permission: member.permission || 'Can View',
-    department: member.department || 'N/A'
-  }))
-});
-
-  try {
-    const res = await fetch('http://localhost:5000/api/team/create-team', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: teamTitle,
-        assignedToId,
-      // ✅ send the selected department
-        members: selectedMembers.map(member => ({
-  userId: member._id,
-  permission: member.permission || 'Can View',
-  department: member.department || 'N/A' 
-}))
-
-      })
+      title: teamTitle,
+      assignedToId,
+      members: selectedMembers.map(member => ({
+        userId: member._id,
+        permission: member.permission || 'Can View',
+        department: member.department || 'N/A'
+      }))
     });
-    const data = await res.json();
-    alert('Team created successfully!');
-    console.log('Team created:', data);
-  } catch (err) {
-    console.error('Error creating team:', err);
-    alert('Error creating team');
-  }
-};
+
+    try {
+      const res = await fetch('http://localhost:5000/api/team/create-team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: teamTitle,
+          assignedToId,
+          // ✅ send the selected department
+          members: selectedMembers.map(member => ({
+            userId: member._id,
+            permission: member.permission || 'Can View',
+            department: member.department || 'N/A'
+          }))
+
+        })
+      });
+      const data = await res.json();
+      alert('Team created successfully!');
+      console.log('Team created:', data);
+    } catch (err) {
+      console.error('Error creating team:', err);
+      alert('Error creating team');
+    }
+  };
 
 
   return (

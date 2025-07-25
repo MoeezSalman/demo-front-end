@@ -4,16 +4,16 @@ import { useLocation } from 'react-router-dom';
 
 
 const AddMember = () => {
-    const location = useLocation();
-const teamName = location.state?.teamName || 'Team';
+  const location = useLocation();
+  const teamName = location.state?.teamName || 'Team';
   const [formData, setFormData] = useState({
-  fullName: '',
-  workEmail: '',
-  department: '',
-  role: '',
-  password: '',
-  confirmPassword: ''
-});
+    fullName: '',
+    workEmail: '',
+    department: '',
+    role: '',
+    password: '',
+    confirmPassword: ''
+  });
 
   const [dropdownStates, setDropdownStates] = useState({
     department: false,
@@ -25,7 +25,7 @@ const teamName = location.state?.teamName || 'Team';
 
 
   // Mock team data - in real app this would come from props or params
-  
+
 
   const departments = ['Engineering', 'Marketing', 'Sales', 'Finance'];
   const roles = ['HR', 'Employee', 'Auditor', 'Manager'];
@@ -54,50 +54,50 @@ const teamName = location.state?.teamName || 'Team';
 
   const handleSubmit = async () => {
     if (
-  !formData.fullName ||
-  !formData.workEmail ||
-  !formData.department ||
-  !formData.role ||
-  !formData.password ||
-  !formData.confirmPassword
-) {
-  alert('Please fill in all fields');
-  return;
-}
-
-if (formData.password !== formData.confirmPassword) {
-  alert('Passwords do not match');
-  return;
-}
-
-  try {
-    const response = await fetch('http://localhost:5000/api/team/add-member-to-team', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        fullName: formData.fullName,
-        workEmail: formData.workEmail,
-        department: formData.department,
-        role: formData.role,
-        password: formData.password,
-        teamName: teamName // from location.state
-      })
-    });
-
-    const result = await response.json();
-    if (response.ok) {
-      alert('Member added successfully!');
-      // Optionally navigate or reset form
-    } else {
-      alert(result.message || 'Something went wrong');
+      !formData.fullName ||
+      !formData.workEmail ||
+      !formData.department ||
+      !formData.role ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      alert('Please fill in all fields');
+      return;
     }
-  } catch (err) {
-    console.error('Error:', err);
-    alert('Server error');
-  }
-};
+
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/team/add-member-to-team', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          workEmail: formData.workEmail,
+          department: formData.department,
+          role: formData.role,
+          password: formData.password,
+          teamName: teamName // from location.state
+        })
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        alert('Member added successfully!');
+        // Optionally navigate or reset form
+      } else {
+        alert(result.message || 'Something went wrong');
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      alert('Server error');
+    }
+  };
 
 
   const handleCancel = () => {
@@ -106,9 +106,9 @@ if (formData.password !== formData.confirmPassword) {
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#f8f9fa', 
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#f8f9fa',
       padding: '20px',
       display: 'flex',
       alignItems: 'center',
@@ -136,7 +136,7 @@ if (formData.password !== formData.confirmPassword) {
         }}>
           {/* Close button */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-            <button 
+            <button
               style={{
                 width: '28px',
                 height: '28px',
@@ -169,17 +169,17 @@ if (formData.password !== formData.confirmPassword) {
 
           {/* Team info */}
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <div style={{ 
-              fontSize: '14px', 
-              color: '#6b7280', 
-              marginBottom: '4px' 
+            <div style={{
+              fontSize: '14px',
+              color: '#6b7280',
+              marginBottom: '4px'
             }}>
               Adding member to:
             </div>
-            <div style={{ 
-              fontSize: '16px', 
-              fontWeight: '600', 
-              color: '#2563eb' 
+            <div style={{
+              fontSize: '16px',
+              fontWeight: '600',
+              color: '#2563eb'
             }}>
               {teamName}
             </div>
@@ -385,58 +385,58 @@ if (formData.password !== formData.confirmPassword) {
 
             {/* Password */}
             <div>
-  <label style={{
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#374151',
-    marginBottom: '8px'
-  }}>
-    Password
-  </label>
-  <input
-    type="password"
-    value={formData.password}
-    onChange={(e) => handleInputChange('password', e.target.value)}
-    style={{
-      width: '100%',
-      padding: '12px 16px',
-      border: '1px solid #d1d5db',
-      borderRadius: '8px',
-      fontSize: '14px',
-      outline: 'none',
-      boxSizing: 'border-box'
-    }}
-  />
-</div>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#374151',
+                marginBottom: '8px'
+              }}>
+                Password
+              </label>
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
 
 
             {/* Confirm Password */}
             <div>
-  <label style={{
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#374151',
-    marginBottom: '8px'
-  }}>
-    Confirm Password
-  </label>
-  <input
-    type="password"
-    value={formData.confirmPassword}
-    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-    style={{
-      width: '100%',
-      padding: '12px 16px',
-      border: '1px solid #d1d5db',
-      borderRadius: '8px',
-      fontSize: '14px',
-      outline: 'none',
-      boxSizing: 'border-box'
-    }}
-  />
-</div>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#374151',
+                marginBottom: '8px'
+              }}>
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                value={formData.confirmPassword}
+                onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
 
           </div>
 
