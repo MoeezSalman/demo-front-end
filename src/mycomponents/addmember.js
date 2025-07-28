@@ -522,7 +522,19 @@ const FinanceDashboard = () => {
                         <td style={styles.tableCell}>{member.permission || 'N/A'}</td>
                         <td style={styles.tableCell}>
                           <div style={styles.actionButtons}>
-                            <button style={styles.editButton}>✏️</button>
+  <button 
+  style={styles.editButton}
+  onClick={() => {
+    // Convert ObjectId to string if needed
+    const userId = typeof member.user === 'object' && member.user !== null ? member.user._id : member.user;
+
+    console.log('Navigating with user ID:', userId);
+    navigate(`/userProfile/${userId}`);
+  }}
+>
+  ✏️
+</button>
+
                             <button style={styles.viewButton}>👁️ View</button>
                           </div>
                         </td>

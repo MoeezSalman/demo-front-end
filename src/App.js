@@ -9,6 +9,7 @@ import AddMember from "./mycomponents/newmember"
 import ManagerAssign from "./mycomponents/managerassigning";
 import Work from "./mycomponents/submitwork";
 import AuditorTaskDetail from "./mycomponents/Auditortaskdetail";
+import ProfileofUser from "./mycomponents/deleteuser";
 import {
   BrowserRouter as Router,
   Routes,
@@ -38,6 +39,7 @@ function App() {
             <Route path="/create" element={<CREATE />} />
             <Route path="/" element={<LoginPage />} />
             <Route path="/employee-task/:id" element={<Work />} />
+            <Route path="/userProfile/:userId" element={<ProfileofUser />} />
           </Routes>
         </Router>
       </div>
