@@ -5,11 +5,33 @@ const ProfileForm = () => {
   const [currentView, setCurrentView] = useState('profile'); // 'profile', 'password', 'delete'
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [password, setPassword] = useState('');
+const [confirmPassword, setConfirmPassword] = useState('');
+
  const { userId } = useParams(); 
   
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+const handleUpdatePassword = async () => {
+  if (password !== confirmPassword) {
+    alert('Passwords do not match');
+    return;
+  }
+
+  try {
+    const response = await axios.put(`http://localhost:5000/api/auth/passwordchanging/${userId}/password`, {
+      password,
+    });
+
+    alert('Password updated successfully');
+    setCurrentView('profile');
+  } catch (error) {
+    console.error('Password update failed:', error);
+    alert(error.response?.data?.message || 'Failed to update password');
+  }
+};
 
  useEffect(() => {
   const fetchUser = async () => {
@@ -352,39 +374,22 @@ const ProfileForm = () => {
         <div style={styles.sectionDivider}>
           <div style={styles.sectionTitle}>Change Password</div>
           
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Password</label>
-            <div style={styles.passwordInputContainer}>
-              <input 
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                style={styles.input}
-              />
-              <button 
-                style={styles.passwordToggle}
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? "🙈" : "👁️"}
-              </button>
-            </div>
-          </div>
+          <input 
+  type={showPassword ? "text" : "password"}
+  placeholder="Password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  style={styles.input}
+/>
 
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Confirm Password</label>
-            <div style={styles.passwordInputContainer}>
-              <input 
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm Password"
-                style={styles.input}
-              />
-              <button 
-                style={styles.passwordToggle}
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? "🙈" : "👁️"}
-              </button>
-            </div>
-          </div>
+<input 
+  type={showConfirmPassword ? "text" : "password"}
+  placeholder="Confirm Password"
+  value={confirmPassword}
+  onChange={(e) => setConfirmPassword(e.target.value)}
+  style={styles.input}
+/>
+
         </div>
       </div>
 
@@ -396,10 +401,12 @@ const ProfileForm = () => {
           Cancel
         </button>
         <button 
-          style={{...styles.button, ...styles.buttonPrimary}}
-        >
-          Update Password
-        </button>
+  onClick={handleUpdatePassword}
+  style={{...styles.button, ...styles.buttonPrimary}}
+>
+  Update Password
+</button>
+
       </div>
     </div>
   );
