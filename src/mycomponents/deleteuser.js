@@ -14,6 +14,26 @@ const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+const handleDeleteUser = async () => {
+  if (!userId) return;
+
+  try {
+    const confirmed = window.confirm('Are you sure you want to delete this user?');
+    if (!confirmed) return;
+
+    await axios.delete(`http://localhost:5000/api/team/member/${userId}`);
+    alert('User deleted successfully');
+    
+    // Optional: redirect or reload
+    window.location.href = '/'; // or navigate('/users') if using React Router v6
+  } catch (error) {
+    console.error('User deletion failed:', error);
+    alert(error.response?.data?.message || 'Failed to delete user');
+  }
+};
+
+
+
 const handleUpdatePassword = async () => {
   if (password !== confirmPassword) {
     alert('Passwords do not match');
@@ -432,10 +452,12 @@ const handleUpdatePassword = async () => {
             Cancel
           </button>
           <button 
-            style={styles.deleteButton}
-          >
-            Delete
-          </button>
+  onClick={handleDeleteUser}
+  style={styles.deleteButton}
+>
+  Delete
+</button>
+
         </div>
       </div>
     </div>
